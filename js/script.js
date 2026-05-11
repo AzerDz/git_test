@@ -265,6 +265,8 @@ class Calculator {
                 this.currentInput = value;
             } else if (value === '.' && this.currentInput.includes('.')) {
                 return;
+            } else if (this.previousInput && this.currentInput === '0') {
+                this.currentInput = value;
             } else {
                 this.currentInput += value;
             }
@@ -272,16 +274,38 @@ class Calculator {
     }
 
     handleOperator(operator) {
-        if (this.previousInput && this.currentInput && !this.shouldResetDisplay) {
-            this.calculate();
-        }
-        
         let opSymbol = operator;
         if (operator === '*') opSymbol = '×';
         if (operator === '/') opSymbol = '÷';
 
-        this.previousInput = this.currentInput + ' ' + opSymbol + ' ';
-        this.currentInput = '';
+        if (this.shouldResetDisplay) {
+            const currentNum = this.currentInput.replace(/,/g, '');
+            this.previousInput = currentNum + ' ' + opSymbol + ' ';
+            this.currentInput = '';
+            this.shouldResetDisplay = true;
+            return;
+        }
+
+        const currentNum = this.currentInput.replace(/,/g, '');
+        
+        if (!currentNum || this.currentInput === '') {
+            this.previousInput += opSymbol + ' ';
+            this.currentInput = '';
+            this.shouldResetDisplay = true;
+            return;
+        }
+
+        const lastChar = this.currentInput.slice(-1);
+        const operators = ['+', '-', '×', '÷', '*', '/', '^', '%'];
+        
+        if (operators.includes(lastChar)) {
+            this.previousInput = this.currentInput.slice(0, -1).replace(/,/g, '') + ' ' + opSymbol + ' ';
+            this.currentInput = '';
+        } else {
+            this.previousInput += currentNum + ' ' + opSymbol + ' ';
+            this.currentInput = '';
+        }
+        
         this.shouldResetDisplay = true;
     }
 
@@ -391,7 +415,14 @@ class Calculator {
             this.previousInput = '';
             this.shouldResetDisplay = false;
         } else {
-            this.currentInput += value;
+            if (this.previousInput && !this.currentInput) {
+                this.currentInput += value;
+            } else if (this.currentInput === '0' || this.currentInput === '') {
+                this.currentInput = this.previousInput + value;
+                this.previousInput = '';
+            } else {
+                this.currentInput += value;
+            }
         }
     }
 
@@ -430,47 +461,160 @@ class Calculator {
         expr = expr.replace(/÷/g, '/');
         expr = expr.replace(/π/g, String(Math.PI));
         expr = expr.replace(/\^/g, '**');
+        expr = expr.replace(/(\d+)!/g, (match, num) => {
+            let fact = 1;
+            for (let i = 2; i <= parseInt(num); i++) fact *= i;
+            return String(fact);
+        });
+
+        const functions = ['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'abs', 'floor', 'ceil', 'round', 'pow'];
+        for (const func of functions) {
+            const regex = new RegExp(func + '\\(([^)]+)\\)', 'g');
+            let prev;
+            do {
+                prev = expr;
+                expr = expr.replace(regex, (match, arg) => {
+                    return `__FUNC_${func}__(${arg})`;
+                });
+            } while (prev !== expr);
+        }
+
+        expr = expr.replace(/\be\b(?![a-zA-Z])/g, String(Math.E));
+
+        const tokenRegex = /(\d+\.?\d*)|(\()|(\))|(\*\*)|([+\-*/%])|(__FUNC_(?:sin|cos|tan|log|ln|sqrt|abs|floor|ceil|round|pow)__)/g;
+        const tokens = [];
+        let match;
         
-        expr = expr.replace(/(\d+\.?\d*)\s*\+\s*(\d+\.?\d*)\s*%/g, '($1*(1+$2/100))');
-        expr = expr.replace(/(\d+\.?\d*)\s*-\s*(\d+\.?\d*)\s*%/g, '($1*(1-$2/100))');
-        expr = expr.replace(/(\d+\.?\d*)\s*\*\s*(\d+\.?\d*)\s*%/g, '($1*$2/100)');
-        expr = expr.replace(/(\d+\.?\d*)\s*\*\s*\/\s*(\d+\.?\d*)\s*%/g, '($1/$2*100)');
-        expr = expr.replace(/(\d+\.?\d*)\s*%/g, '($1/100)');
-        
-        const factorialMatch = expr.match(/(\d+)!/g);
-        if (factorialMatch) {
-            for (const match of factorialMatch) {
-                const num = parseInt(match);
-                let fact = 1;
-                for (let i = 2; i <= num; i++) fact *= i;
-                expr = expr.replace(match, String(fact));
+        while ((match = tokenRegex.exec(expr)) !== null) {
+            if (match[1]) tokens.push({ type: 'number', value: parseFloat(match[1]) });
+            else if (match[2]) tokens.push({ type: 'lparen', value: '(' });
+            else if (match[3]) tokens.push({ type: 'rparen', value: ')' });
+            else if (match[4]) tokens.push({ type: 'operator', value: '**' });
+            else if (match[5]) tokens.push({ type: 'operator', value: match[5] });
+            else if (match[6]) {
+                const funcName = match[6].replace('__FUNC_', '').replace('__', '');
+                tokens.push({ type: 'function', value: funcName });
             }
         }
 
-        const functions = ['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'abs', 'floor', 'ceil', 'round'];
-        for (const func of functions) {
-            const regex = new RegExp(func + '\\(([^)]+)\\)', 'g');
-            expr = expr.replace(regex, (match, arg) => {
-                const mathFunc = func === 'ln' ? 'log' : func;
-                return `Math.${mathFunc}(${arg})`;
-            });
+        if (tokens.length === 0) {
+            throw new Error('Invalid expression');
         }
 
-        expr = expr.replace(/\be\b/g, String(Math.E));
+        let pos = 0;
 
-        const sanitized = expr.replace(/[^0-9+\-*/().MathPIlogsin_costanabsfloorceilroundpowsqrt\s]/g, '');
+        const peek = () => tokens[pos];
+        const consume = () => tokens[pos++];
+
+        const parseExpression = () => parseAddSub();
+
+        const parseAddSub = () => {
+            let left = parseMulDiv();
+            while (peek() && (peek().value === '+' || peek().value === '-')) {
+                const op = consume().value;
+                const right = parseMulDiv();
+                left = op === '+' ? left + right : left - right;
+            }
+            return left;
+        };
+
+        const parseMulDiv = () => {
+            let left = parsePower();
+            while (peek() && (peek().value === '*' || peek().value === '/')) {
+                const op = consume().value;
+                const right = parsePower();
+                if (op === '*') {
+                    if (peek() && peek().value === '%') {
+                        consume();
+                        left = left * right / 100;
+                    } else {
+                        left = left * right;
+                    }
+                } else {
+                    if (right === 0) throw new Error('Division by zero');
+                    left = left / right;
+                }
+            }
+            return left;
+        };
+
+        const parsePower = () => {
+            let left = parseUnary();
+            if (peek() && peek().value === '**') {
+                consume();
+                const right = parsePower();
+                left = Math.pow(left, right);
+            }
+            return left;
+        };
+
+        const parseUnary = () => {
+            if (peek() && peek().value === '-') {
+                consume();
+                return -parseUnary();
+            }
+            return parsePrimary();
+        };
+
+        const parsePrimary = () => {
+            const token = peek();
+            
+            if (!token) throw new Error('Unexpected end of expression');
+            
+            if (token.type === 'number') {
+                consume();
+                if (peek() && peek().value === '%') {
+                    consume();
+                    return token.value / 100;
+                }
+                return token.value;
+            }
+            
+            if (token.type === 'function') {
+                const func = consume().value;
+                if (!peek() || peek().type !== 'lparen') throw new Error('Expected ( after function');
+                consume();
+                const arg = parseExpression();
+                if (!peek() || peek().type !== 'rparen') throw new Error('Expected )');
+                consume();
+                return this.evaluateFunction(func, arg);
+            }
+            
+            if (token.type === 'lparen') {
+                consume();
+                const result = parseExpression();
+                if (!peek() || peek().type !== 'rparen') throw new Error('Missing closing parenthesis');
+                consume();
+                return result;
+            }
+            
+            throw new Error('Invalid token: ' + JSON.stringify(token));
+        };
+
+        const result = parseExpression();
         
-        if (sanitized !== expr) {
-            console.warn('Sanitized expression:', sanitized);
+        if (pos < tokens.length) {
+            throw new Error('Unexpected tokens at end');
         }
-
-        if (/[^0-9+\-*/().MathPIlogsin_costanabsfloorceilroundpowsqrt\s]/.test(sanitized)) {
-            throw new Error('Invalid characters in expression');
-        }
-
-        const result = new Function('return ' + sanitized)();
         
         return result;
+    }
+
+    evaluateFunction(func, arg) {
+        switch (func) {
+            case 'sin': return Math.sin(arg * Math.PI / 180);
+            case 'cos': return Math.cos(arg * Math.PI / 180);
+            case 'tan': return Math.tan(arg * Math.PI / 180);
+            case 'log': return Math.log10(arg);
+            case 'ln': return Math.log(arg);
+            case 'sqrt': return Math.sqrt(arg);
+            case 'abs': return Math.abs(arg);
+            case 'floor': return Math.floor(arg);
+            case 'ceil': return Math.ceil(arg);
+            case 'round': return Math.round(arg);
+            case 'pow': return Math.pow(arg, 2);
+            default: throw new Error('Unknown function: ' + func);
+        }
     }
 
     formatResult(num) {
@@ -505,6 +649,7 @@ class Calculator {
     clear() {
         this.currentInput = '0';
         this.previousInput = '';
+        this.shouldResetDisplay = false;
     }
 
     backspace() {
