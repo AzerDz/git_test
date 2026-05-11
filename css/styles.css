@@ -1,0 +1,574 @@
+:root {
+    --bg-dark: #0a0a0f;
+    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --gradient-dark: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.6);
+    --glow-primary: 0 0 20px rgba(102, 126, 234, 0.5);
+    --glow-secondary: 0 0 20px rgba(240, 147, 251, 0.5);
+    --glow-accent: 0 0 20px rgba(79, 172, 254, 0.5);
+    --error-color: #ff4757;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--bg-dark);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    font-family: 'Outfit', sans-serif;
+}
+
+.calculator-container {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 30px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.calculator-container::before,
+.calculator-container::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.calculator-container::before {
+    width: 200px;
+    height: 200px;
+    background: var(--gradient-primary);
+    top: -100px;
+    left: -50px;
+    animation: floatOrb 8s ease-in-out infinite;
+}
+
+.calculator-container::after {
+    width: 150px;
+    height: 150px;
+    background: var(--gradient-accent);
+    bottom: -80px;
+    right: -30px;
+    animation: floatOrb 10s ease-in-out infinite reverse;
+}
+
+@keyframes floatOrb {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+    }
+    33% {
+        transform: translate(30px, -20px) scale(1.1);
+    }
+    66% {
+        transform: translate(-20px, 20px) scale(0.9);
+    }
+}
+
+.calculator-display {
+    background: var(--gradient-dark);
+    border-radius: 16px;
+    padding: 24px 20px;
+    margin-bottom: 24px;
+    text-align: right;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    border: 1px solid var(--glass-border);
+    overflow: hidden;
+}
+
+.calculator-display.error {
+    animation: errorFlash 0.5s ease;
+}
+
+@keyframes errorFlash {
+    0%, 100% {
+        box-shadow: inset 0 0 0 0 transparent;
+    }
+    25%, 75% {
+        box-shadow: inset 0 0 30px rgba(255, 71, 87, 0.3);
+    }
+}
+
+.previous-calculation {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    min-height: 24px;
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+.current-result {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    word-wrap: break-word;
+    word-break: break-all;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.current-result.slide-in {
+    animation: slideInRight 0.2s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.current-result.result-reveal {
+    animation: resultReveal 0.3s ease;
+}
+
+@keyframes resultReveal {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.current-result.error-shake {
+    animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.button-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+}
+
+.calc-btn {
+    padding: 16px 8px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    font-family: 'Outfit', sans-serif;
+    position: relative;
+    overflow: hidden;
+}
+
+.calc-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.calc-btn:hover::before {
+    opacity: 1;
+}
+
+.calc-btn:hover {
+    transform: scale(1.05);
+}
+
+.calc-btn:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+}
+
+.calc-btn.active {
+    transform: scale(0.95);
+    box-shadow: 0 0 25px rgba(79, 172, 254, 0.8);
+}
+
+.number-btn,
+.function-btn {
+    background: var(--gradient-dark);
+    color: var(--text-primary);
+    border: 1px solid var(--glass-border);
+}
+
+.number-btn:hover,
+.function-btn:hover {
+    box-shadow: 0 0 20px rgba(79, 172, 254, 0.5), 0 0 40px rgba(79, 172, 254, 0.3);
+}
+
+.number-btn:active,
+.function-btn:active {
+    transform: scale(0.95);
+}
+
+.operator-btn {
+    background: var(--gradient-primary);
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.operator-btn:hover {
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.5), 0 0 40px rgba(102, 126, 234, 0.3);
+}
+
+.operator-btn:active {
+    transform: scale(0.95);
+}
+
+.clear-btn {
+    background: var(--gradient-secondary);
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.clear-btn:hover {
+    box-shadow: 0 0 20px rgba(240, 147, 251, 0.5), 0 0 40px rgba(240, 147, 251, 0.3);
+}
+
+.clear-btn:active {
+    transform: scale(0.95);
+}
+
+.equals-btn {
+    background: var(--gradient-accent);
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.equals-btn:hover {
+    box-shadow: 0 0 20px rgba(79, 172, 254, 0.5), 0 0 40px rgba(79, 172, 254, 0.3);
+}
+
+.equals-btn:active {
+    transform: scale(0.95);
+}
+
+.function-btn[data-value="history"] {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: var(--glow-primary);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(102, 126, 234, 0.8);
+    }
+}
+    50% {
+        box-shadow: 0 0 30px rgba(102, 126, 234, 0.8);
+    }
+}
+
+.equals-btn.pulse {
+    animation: pulse-glow 1.5s infinite;
+}
+
+@media (max-width: 768px) {
+    .calculator-container {
+        padding: 20px;
+        max-width: 100%;
+    }
+
+    .calculator-display {
+        padding: 20px 16px;
+        min-height: 100px;
+    }
+
+    .current-result {
+        font-size: 2rem;
+    }
+
+    .previous-calculation {
+        font-size: 0.875rem;
+    }
+
+    .button-grid {
+        gap: 8px;
+    }
+
+    .calc-btn {
+        padding: 14px 6px;
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .calculator-container {
+        padding: 16px;
+        border-radius: 20px;
+    }
+
+    .button-grid {
+        gap: 6px;
+    }
+
+    .calc-btn {
+        padding: 12px 4px;
+        font-size: 0.8rem;
+        border-radius: 8px;
+    }
+
+    .current-result {
+        font-size: 1.75rem;
+    }
+}
+
+.history-panel {
+    position: fixed;
+    top: 0;
+    right: -350px;
+    width: 350px;
+    height: 100vh;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-left: 1px solid var(--glass-border);
+    padding: 30px 20px;
+    transition: right 0.3s ease-out;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.history-panel.active {
+    right: 0;
+    animation: slideInPanel 0.3s ease-out forwards;
+}
+
+.history-panel.closing {
+    right: 0;
+    animation: slideOutPanel 0.2s ease-in forwards;
+}
+
+@keyframes slideInPanel {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutPanel {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.history-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.history-item {
+    background: var(--gradient-dark);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.history-item:nth-child(1) { animation-delay: 0.05s; }
+.history-item:nth-child(2) { animation-delay: 0.1s; }
+.history-item:nth-child(3) { animation-delay: 0.15s; }
+.history-item:nth-child(4) { animation-delay: 0.2s; }
+.history-item:nth-child(5) { animation-delay: 0.25s; }
+.history-item:nth-child(6) { animation-delay: 0.3s; }
+
+@keyframes fadeInItem {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.history-item:hover {
+    transform: translateX(-5px);
+    box-shadow: var(--glow-accent);
+}
+
+.history-expression {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.history-result {
+    font-size: 1.25rem;
+    font-weight: 600;
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.history-clear {
+    background: var(--gradient-secondary);
+    color: var(--text-primary);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    width: 100%;
+    margin-top: 20px;
+    transition: all 0.2s ease;
+}
+
+.history-clear:hover {
+    transform: scale(1.02);
+    box-shadow: var(--glow-secondary);
+}
+
+.toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--gradient-primary);
+    color: var(--text-primary);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    z-index: 2000;
+}
+
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.toast.hide {
+    transform: translateX(-50%) translateY(100px);
+    opacity: 0;
+}
+
+.copy-btn {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.copy-btn:hover {
+    background: var(--glass-bg);
+    box-shadow: var(--glow-accent);
+}
+
+.copy-btn.copied {
+    background: var(--gradient-primary);
+    border-color: transparent;
+}
+
+.copy-btn.copied span {
+    display: none;
+}
+
+.copy-btn.copied::after {
+    content: '✓';
+}
+
+@keyframes morphToCheck {
+    0% {
+        transform: scale(0.8);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@media (max-width: 768px) {
+    .history-panel {
+        width: 100%;
+        right: -100%;
+    }
+}
+
+.calculator-container {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+.calc-btn {
+    animation: fadeIn 0.3s ease backwards;
+}
+
+.button-grid .calc-btn:nth-child(1) { animation-delay: 0.02s; }
+.button-grid .calc-btn:nth-child(2) { animation-delay: 0.04s; }
+.button-grid .calc-btn:nth-child(3) { animation-delay: 0.06s; }
+.button-grid .calc-btn:nth-child(4) { animation-delay: 0.08s; }
+.button-grid .calc-btn:nth-child(5) { animation-delay: 0.1s; }
+.button-grid .calc-btn:nth-child(6) { animation-delay: 0.12s; }

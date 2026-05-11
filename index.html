@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scientific Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-[#0a0a0f] min-h-screen font-['Outfit']">
+    <div class="calculator-container">
+        <div class="calculator-display">
+            <div class="previous-calculation" id="previousCalculation"></div>
+            <div class="current-result" id="currentResult">0</div>
+        </div>
+
+        <div class="button-grid">
+            <button class="calc-btn function-btn" data-value="sin">sin</button>
+            <button class="calc-btn function-btn" data-value="cos">cos</button>
+            <button class="calc-btn function-btn" data-value="tan">tan</button>
+            <button class="calc-btn function-btn" data-value="log">log</button>
+            <button class="calc-btn function-btn" data-value="ln">ln</button>
+            <button class="calc-btn function-btn" data-value="backspace"><i class="fas fa-backspace"></i></button>
+
+            <button class="calc-btn function-btn" data-value="(">(</button>
+            <button class="calc-btn function-btn" data-value=")">)</button>
+            <button class="calc-btn function-btn" data-value="^">^</button>
+            <button class="calc-btn function-btn" data-value="sqrt">√</button>
+            <button class="calc-btn function-btn" data-value="pi">π</button>
+            <button class="calc-btn function-btn" data-value="e">e</button>
+
+            <button class="calc-btn number-btn" data-value="7">7</button>
+            <button class="calc-btn number-btn" data-value="8">8</button>
+            <button class="calc-btn number-btn" data-value="9">9</button>
+            <button class="calc-btn operator-btn" data-value="/">÷</button>
+            <button class="calc-btn clear-btn" data-value="clear">C</button>
+            <button class="calc-btn clear-btn" data-value="ac">AC</button>
+
+            <button class="calc-btn number-btn" data-value="4">4</button>
+            <button class="calc-btn number-btn" data-value="5">5</button>
+            <button class="calc-btn number-btn" data-value="6">6</button>
+            <button class="calc-btn operator-btn" data-value="*">×</button>
+            <button class="calc-btn function-btn" data-value="%">%</button>
+            <button class="calc-btn function-btn" data-value="!">!</button>
+
+            <button class="calc-btn number-btn" data-value="1">1</button>
+            <button class="calc-btn number-btn" data-value="2">2</button>
+            <button class="calc-btn number-btn" data-value="3">3</button>
+            <button class="calc-btn operator-btn" data-value="-">-</button>
+            <button class="calc-btn function-btn" data-value="ans">ANS</button>
+            <button class="calc-btn equals-btn" data-value="=">=</button>
+
+            <button class="calc-btn number-btn" data-value="0">0</button>
+            <button class="calc-btn number-btn" data-value=".">.</button>
+            <button class="calc-btn function-btn" data-value="negate">±</button>
+            <button class="calc-btn operator-btn" data-value="+">+</button>
+            <button class="calc-btn function-btn" data-value="history"><i class="fas fa-history"></i></button>
+            <button class="calc-btn equals-btn" data-value="=">=</button>
+        </div>
+    </div>
+    <script src="js/script.js"></script>
+</body>
+</html>
