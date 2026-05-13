@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scientific Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --text-secondary: rgba(255, 255, 255, 0.6);
+        }
+
+        body {
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        body.loaded {
+            opacity: 1;
+        }
+
+        @keyframes floatOrb {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -20px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        @keyframes slideInFromLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        @keyframes slideInPanel {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOutPanel {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        .error-shake { animation: shake 0.5s ease; }
+        .calculator-display.error { animation: shake 0.5s ease; }
+        .current-result.slide-in { animation: slideInRight 0.2s ease; }
+        .current-result.result-reveal { animation: resultReveal 0.3s ease; }
+        .equals-btn.pulse { animation: pulseGlow 1.5s infinite; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .history-panel {
+            position: fixed;
+            top: 0;
+            right: -350px;
+            width: 350px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px 20px;
+            transition: right 0.3s ease-out;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .history-panel.active {
+            right: 0;
+            animation: slideInPanel 0.3s ease-out forwards;
+        }
+
+        .history-panel.closing {
+            right: 0;
+            animation: slideOutPanel 0.2s ease-in forwards;
+        }
+
+        .history-item:nth-child(1) { animation-delay: 0.05s; }
+        .history-item:nth-child(2) { animation-delay: 0.1s; }
+        .history-item:nth-child(3) { animation-delay: 0.15s; }
+        .history-item:nth-child(4) { animation-delay: 0.2s; }
+        .history-item:nth-child(5) { animation-delay: 0.25s; }
+        .history-item:nth-child(6) { animation-delay: 0.3s; }
+
+        .history-item {
+            animation: fadeIn 0.3s ease backwards;
+            position: relative;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .history-item:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.5);
+        }
+
+        .history-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .history-expression {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 4px;
+        }
+
+        .history-result {
+            font-size: 1.25rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .history-clear {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .history-clear:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(240, 147, 251, 0.5);
+        }
+
+        .history-delete {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .history-delete:hover {
+            color: #ff4757;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.hide {
+            transform: translateX(-50%) translateY(100px);
+            opacity: 0;
+        }
+
+        .nav-back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+
+        .nav-back-btn a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-blur-xl;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: slideInFromLeft 0.4s ease 0.2s forwards;
+        }
+
+        .nav-back-btn a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .history-panel { width: 100%; right: -100%; }
+        }
+
+        @media (max-width: 480px) {
+            .calculator-container { padding: 16px; border-radius: 20px; }
+            .button-grid { gap: 6px; }
+            .calc-btn { padding: 12px 4px; font-size: 0.8rem; border-radius: 8px; }
+            .current-result { font-size: 1.75rem; }
+        }
+
+        .calc-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .calc-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .calc-btn:hover::before { opacity: 1; }
+    </style>
+</head>
+<body class="bg-[#0a0a0f] min-h-screen flex items-center justify-center p-5 font-['Outfit']">
+    <div class="nav-back-btn">
+        <a href="index.html" onclick="navigateWithAnimation(event, this.href)">
+            <i class="fas fa-arrow-left"></i>
+            <span>Home</span>
+        </a>
+    </div>
+
+    <div class="calculator-container relative w-full max-w-[420px] p-[30px] rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)] overflow-hidden" id="calc-container">
+        <div class="absolute w-[200px] h-[200px] rounded-full bg-gradient-to-br from-[#667eea] to-[#764ba2] blur-3xl opacity-40 pointer-events-none -top-[100px] -left-[50px] animate-[floatOrb_8s_ease-in-out_infinite]"></div>
+        <div class="absolute w-[150px] h-[150px] rounded-full bg-gradient-to-br from-[#4facfe] to-[#00f2fe] blur-3xl opacity-40 pointer-events-none -bottom-[80px] -right-[30px] animate-[floatOrb_10s_ease-in-out_infinite_reverse]"></div>
+
+        <div class="calculator-display bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-6 mb-6 text-right h-[120px] flex flex-col justify-end border border-white/10 overflow-hidden">
+            <div class="previous-calculation text-white/60 text-base mb-2 min-h-[24px] break-all" id="previousCalculation"></div>
+            <div class="current-result text-5xl font-semibold bg-gradient-to-r from-[#667eea] to-[#764ba2] bg-clip-text text-transparent break-all" id="currentResult">0</div>
+        </div>
+
+        <div class="button-grid grid grid-cols-6 gap-[10px]">
+            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="sin">sin</button>
+            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="cos">cos</button>
+            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="tan">tan</button>
+            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="log">log</button>
+            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="ln">ln</button>
+            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="backspace"><i class="fas fa-backspace"></i></button>
+
+            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="(">(</button>
+            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value=")">)</button>
+            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="^">^</button>
+            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="sqrt">√</button>
+            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="pi">π</button>
+            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="e">e</button>
+
+            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="7">7</button>
+            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="8">8</button>
+            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="9">9</button>
+            <button class="calc-btn operator-btn bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white rounded-xl py-4 px-2 text-base font-semibold cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="/">÷</button>
+            <button class="calc-btn clear-btn bg-gradient-to-br from-[#f093fb] to-[#f5576c] text-white rounded-xl py-4 px-2 text-base font-semibold cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="clear">C</button>
+            <button class="calc-btn clear-btn bg-gradient-to-br from-[#f093fb] to-[#f5576c] text-white rounded-xl py-4 px-2 text-base font-semibold cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="ac">AC</button>
+
+            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="4">4</button>
+            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="5">5</button>
+            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="6">6</button>
+            <button class="calc-btn operator-btn bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white rounded-xl py-4 px-2 text-base font-semibold cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="*">×</button>
+            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="%">%</button>
+            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="!">!</button>
+
+            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="1">1</button>
+            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="2">2</button>
+            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="3">3</button>
+            <button class="calc-btn operator-btn bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white rounded-xl py-4 px-2 text-base font-semibold cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="-">-</button>
+            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="ans">ANS</button>
+            <button class="calc-btn equals-btn row-span-2 bg-gradient-to-br from-[#4facfe] to-[#00f2fe] text-white rounded-xl py-4 px-2 text-xl font-bold cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="=">=</button>
+
+            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="0">0</button>
+            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value=".">.</button>
+            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="negate">±</button>
+            <button class="calc-btn operator-btn bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white rounded-xl py-4 px-2 text-base font-semibold cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="+">+</button>
+            <button class="calc-btn function-btn bg-white/5 border border-white/10 text-white rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="history"><i class="fas fa-history"></i></button>
+        </div>
+    </div>
+    <script src="js/script.js"></script>
+    <script>
+        function navigateWithAnimation(event, href) {
+            if (event) event.preventDefault();
+            document.body.classList.remove('loaded');
+            setTimeout(() => {
+                window.location.href = href;
+            }, 300);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.body.classList.add('loaded');
+            }, 50);
+
+            setTimeout(() => {
+                const calcContainer = document.getElementById('calc-container');
+                if (calcContainer) {
+                    calcContainer.style.opacity = '0';
+                    calcContainer.style.transform = 'scale(0.9)';
+                    calcContainer.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    
+                    setTimeout(() => {
+                        calcContainer.style.opacity = '';
+                        calcContainer.style.transform = '';
+                    }, 100);
+                }
+            }, 50);
+        });
+
+        window.addEventListener('pageshow', function() {
+            document.body.classList.remove('loaded');
+            setTimeout(() => {
+                document.body.classList.add('loaded');
+            }, 50);
+        });
+    </script>
+</body>
+</html>

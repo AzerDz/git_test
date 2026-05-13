@@ -3,301 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scientific Calculator</title>
+    <title>QuickTools - Your Daily Utility Hub</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
+<style>
         :root {
             --text-secondary: rgba(255, 255, 255, 0.6);
         }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
+
+        body {
+            opacity: 0;
+            transition: opacity 0.4s ease;
         }
-        
+
+        body.loaded {
+            opacity: 1;
+        }
+
         @keyframes floatOrb {
             0%, 100% { transform: translate(0, 0) scale(1); }
             33% { transform: translate(30px, -20px) scale(1.1); }
             66% { transform: translate(-20px, 20px) scale(0.9); }
         }
-        
-        @keyframes slideInRight {
-            from { transform: translateX(20px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+
+        @keyframes slideInFromLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
-        
-        @keyframes resultReveal {
-            0% { transform: scale(0.8); opacity: 0; }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        
-        @keyframes errorFlash {
-            0%, 100% { box-shadow: inset 0 0 0 0 transparent; }
-            25%, 75% { box-shadow: inset 0 0 30px rgba(255, 71, 87, 0.3); }
-        }
-        
-        @keyframes pulseGlow {
-            0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.5); }
-            50% { box-shadow: 0 0 30px rgba(102, 126, 234, 0.8); }
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes slideInPanel {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        @keyframes slideOutPanel {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-        
-        .error-shake { animation: shake 0.5s ease; }
-        .calculator-display.error { animation: errorFlash 0.5s ease; }
-        .current-result.slide-in { animation: slideInRight 0.2s ease; }
-        .current-result.result-reveal { animation: resultReveal 0.3s ease; }
-        .equals-btn.pulse { animation: pulseGlow 1.5s infinite; }
-        
-        .history-panel {
-            position: fixed;
-            top: 0;
-            right: -350px;
-            width: 350px;
-            height: 100vh;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 30px 20px;
-            transition: right 0.3s ease-out;
-            z-index: 1000;
-            overflow-y: auto;
-        }
-        
-        .history-panel.active {
-            right: 0;
-            animation: slideInPanel 0.3s ease-out forwards;
-        }
-        
-        .history-panel.closing {
-            right: 0;
-            animation: slideOutPanel 0.2s ease-in forwards;
-        }
-        
-        .history-item:nth-child(1) { animation-delay: 0.05s; }
-        .history-item:nth-child(2) { animation-delay: 0.1s; }
-        .history-item:nth-child(3) { animation-delay: 0.15s; }
-        .history-item:nth-child(4) { animation-delay: 0.2s; }
-        .history-item:nth-child(5) { animation-delay: 0.25s; }
-        .history-item:nth-child(6) { animation-delay: 0.3s; }
-        
-        .history-item {
-            animation: fadeIn 0.3s ease backwards;
-            position: relative;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .history-item:hover {
-            transform: translateX(-5px);
-            box-shadow: 0 0 20px rgba(79, 172, 254, 0.5);
-        }
-        
-        .history-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .history-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        
-        .history-expression {
-            font-size: 0.875rem;
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 4px;
-        }
-        
-        .history-result {
-            font-size: 1.25rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .history-clear {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            width: 100%;
-            margin-top: 20px;
-            transition: all 0.2s ease;
-        }
-        
-        .history-clear:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0 20px rgba(240, 147, 251, 0.5);
-        }
-        
-        .history-delete {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: transparent;
-            border: none;
-            color: rgba(255, 255, 255, 0.6);
-            cursor: pointer;
-            padding: 4px;
-        }
-        
-        .history-delete:hover {
-            color: #ff4757;
-        }
-        
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 500;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            opacity: 0;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-            z-index: 2000;
-        }
-        
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-        
-        .toast.hide {
-            transform: translateX(-50%) translateY(100px);
-            opacity: 0;
-        }
-        
-        @media (max-width: 768px) {
-            .history-panel { width: 100%; right: -100%; }
-            .calculator-container { padding: 20px; }
-            .calculator-display { padding: 20px 16px; height: 100px; }
-            .current-result { font-size: 2rem; }
-            .previous-calculation { font-size: 0.875rem; }
-            .button-grid { gap: 8px; }
-            .calc-btn { padding: 14px 6px; font-size: 0.875rem; }
-        }
-        
-        @media (max-width: 480px) {
-            .calculator-container { padding: 16px; border-radius: 20px; }
-            .button-grid { gap: 6px; }
-            .calc-btn { padding: 12px 4px; font-size: 0.8rem; border-radius: 8px; }
-            .current-result { font-size: 1.75rem; }
-        }
-        
-        .calc-btn {
+
+        .tool-card {
             position: relative;
             overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        
-        .calc-btn::before {
+
+        .tool-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
             opacity: 0;
-            transition: opacity 0.2s ease;
+            transition: opacity 0.3s ease;
         }
-        
-        .calc-btn:hover::before { opacity: 1; }
+
+        .tool-card:hover::before {
+            opacity: 1;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .nav-back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+
+        .nav-back-btn a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-blur-xl;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: slideInFromLeft 0.4s ease 0.2s forwards;
+        }
+
+        .nav-back-btn a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            filter: blur(80px);
+        }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5rem; }
+            .hero-subtitle { font-size: 1rem; }
+            .tool-card { padding: 24px; }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title { font-size: 2rem; }
+            .hero-subtitle { font-size: 0.875rem; }
+            .tools-grid { grid-template-columns: 1fr !important; }
+        }
     </style>
 </head>
-<body class="bg-[#0a0a0f] min-h-screen flex items-center justify-center p-5 font-['Outfit']">
-    <div class="calculator-container relative w-full max-w-[420px] p-[30px] rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)] overflow-hidden">
-        <div class="absolute w-[200px] h-[200px] rounded-full bg-gradient-to-br from-[#667eea] to-[#764ba2] blur-3xl opacity-40 pointer-events-none -top-[100px] -left-[50px] animate-[floatOrb_8s_ease-in-out_infinite]"></div>
-        <div class="absolute w-[150px] h-[150px] rounded-full bg-gradient-to-br from-[#4facfe] to-[#00f2fe] blur-3xl opacity-40 pointer-events-none -bottom-[80px] -right-[30px] animate-[floatOrb_10s_ease-in-out_infinite_reverse]"></div>
-        
-        <div class="calculator-display bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-6 mb-6 text-right h-[120px] flex flex-col justify-end border border-white/10 overflow-hidden">
-            <div class="previous-calculation text-white/60 text-base mb-2 min-h-[24px] break-all" id="previousCalculation"></div>
-            <div class="current-result text-5xl font-semibold bg-gradient-to-r from-[#667eea] to-[#764ba2] bg-clip-text text-transparent break-all" id="currentResult">0</div>
-        </div>
+<body class="bg-[#0a0a0f] min-h-screen flex flex-col items-center justify-center p-5 font-['Outfit'] relative overflow-hidden">
+    <div class="orb w-[300px] h-[300px] bg-gradient-to-br from-[#667eea] to-[#764ba2] opacity-30 -top-[150px] -left-[100px] animate-[floatOrb_10s_ease-in-out_infinite]"></div>
+    <div class="orb w-[250px] h-[250px] bg-gradient-to-br from-[#4facfe] to-[#00f2fe] opacity-30 -bottom-[100px] -right-[80px] animate-[floatOrb_12s_ease-in-out_infinite_reverse]"></div>
+    <div class="orb w-[200px] h-[200px] bg-gradient-to-br from-[#f093fb] to-[#f5576c] opacity-20 top-[30%] left-[10%] animate-[floatOrb_15s_ease-in-out_infinite]"></div>
 
-        <div class="button-grid grid grid-cols-6 gap-[10px]">
-            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="sin">sin</button>
-            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="cos">cos</button>
-            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="tan">tan</button>
-            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="log">log</button>
-            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="ln">ln</button>
-            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="backspace"><i class="fas fa-backspace"></i></button>
+    <div class="relative z-10 text-center max-w-2xl mx-auto">
+        <h1 id="hero-title" class="hero-title text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#4facfe] bg-clip-text text-transparent">
+            QuickTools
+        </h1>
+        <p id="hero-subtitle" class="hero-subtitle text-lg text-white/60 mb-12">
+            Your daily utility hub. Fast, simple, beautiful.
+        </p>
 
-            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="(">(</button>
-            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value=")">)</button>
-            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="^">^</button>
-            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="sqrt">√</button>
-            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="pi">π</button>
-            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="e">e</button>
+        <div class="tools-grid grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <a href="calculator.html" class="tool-card block bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-8 border border-white/10 backdrop-blur-xl" id="card-calc" onclick="navigateWithAnimation(event, this.href)">
+                <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center mb-4 mx-auto">
+                    <i class="fas fa-calculator text-2xl text-white"></i>
+                </div>
+                <h2 class="text-xl font-semibold text-white mb-2">Scientific Calculator</h2>
+                <p class="text-sm text-white/60">Advanced calculator with sin, cos, log, history & more</p>
+            </a>
 
-            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="7">7</button>
-            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="8">8</button>
-            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="9">9</button>
-            <button class="calc-btn operator-btn bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white rounded-xl py-4 px-2 text-base font-semibold cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="/">÷</button>
-            <button class="calc-btn clear-btn bg-gradient-to-br from-[#f093fb] to-[#f5576c] text-white rounded-xl py-4 px-2 text-base font-semibold cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="clear">C</button>
-            <button class="calc-btn clear-btn bg-gradient-to-br from-[#f093fb] to-[#f5576c] text-white rounded-xl py-4 px-2 text-base font-semibold cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="ac">AC</button>
+            <div class="tool-card bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-8 border border-white/10 backdrop-blur-xl opacity-50 cursor-not-allowed" id="card-links">
+                <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-[#4facfe] to-[#00f2fe] flex items-center justify-center mb-4 mx-auto">
+                    <i class="fas fa-link text-2xl text-white"></i>
+                </div>
+                <h2 class="text-xl font-semibold text-white mb-2">Quick Links</h2>
+                <p class="text-sm text-white/60">Access your favorite sites instantly</p>
+                <span class="inline-block mt-3 text-xs bg-white/10 text-white/80 px-3 py-1 rounded-full">Coming soon</span>
+            </div>
 
-            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="4">4</button>
-            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="5">5</button>
-            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="6">6</button>
-            <button class="calc-btn operator-btn bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white rounded-xl py-4 px-2 text-base font-semibold cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="*">×</button>
-            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="%">%</button>
-            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="!">!</button>
+            <div class="tool-card bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-8 border border-white/10 backdrop-blur-xl opacity-50 cursor-not-allowed" id="card-tools">
+                <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-[#f093fb] to-[#f5576c] flex items-center justify-center mb-4 mx-auto">
+                    <i class="fas fa-tools text-2xl text-white"></i>
+                </div>
+                <h2 class="text-xl font-semibold text-white mb-2">More Tools</h2>
+                <p class="text-sm text-white/60">New utilities added regularly</p>
+                <span class="inline-block mt-3 text-xs bg-white/10 text-white/80 px-3 py-1 rounded-full">Coming soon</span>
+            </div>
 
-            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="1">1</button>
-            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="2">2</button>
-            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="3">3</button>
-            <button class="calc-btn operator-btn bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white rounded-xl py-4 px-2 text-base font-semibold cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="-">-</button>
-            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="ans">ANS</button>
-            <button class="calc-btn equals-btn row-span-2 bg-gradient-to-br from-[#4facfe] to-[#00f2fe] text-white rounded-xl py-4 px-2 text-xl font-bold cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="=">=</button>
-
-            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="0">0</button>
-            <button class="calc-btn number-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value=".">.</button>
-            <button class="calc-btn function-btn bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white border border-white/10 rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="negate">±</button>
-            <button class="calc-btn operator-btn bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white rounded-xl py-4 px-2 text-base font-semibold cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="+">+</button>
-            <button class="calc-btn function-btn bg-white/5 border border-white/10 text-white rounded-xl py-4 px-2 text-base font-medium cursor-pointer transition-transform hover:scale-105 active:scale-95" data-value="history"><i class="fas fa-history"></i></button>
+            <div class="tool-card bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-8 border border-white/10 backdrop-blur-xl opacity-50 cursor-not-allowed" id="card-suggest">
+                <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center mb-4 mx-auto">
+                    <i class="fas fa-plus text-2xl text-white"></i>
+                </div>
+                <h2 class="text-xl font-semibold text-white mb-2">Suggest a Tool</h2>
+                <p class="text-sm text-white/60">Have an idea? Let us know!</p>
+                <span class="inline-block mt-3 text-xs bg-white/10 text-white/80 px-3 py-1 rounded-full">Coming soon</span>
+            </div>
         </div>
     </div>
-    <script src="js/script.js"></script>
+
+    <script>
+        function navigateWithAnimation(event, href) {
+            if (event) event.preventDefault();
+            document.body.classList.remove('loaded');
+            setTimeout(() => {
+                window.location.href = href;
+            }, 300);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.body.classList.add('loaded');
+            }, 50);
+
+            const elements = [
+                { el: document.getElementById('hero-title'), delay: 100, duration: 500 },
+                { el: document.getElementById('hero-subtitle'), delay: 200, duration: 500 },
+                { el: document.getElementById('card-calc'), delay: 300, duration: 500 },
+                { el: document.getElementById('card-links'), delay: 400, duration: 500 },
+                { el: document.getElementById('card-tools'), delay: 500, duration: 500 },
+                { el: document.getElementById('card-suggest'), delay: 600, duration: 500 }
+            ];
+
+            elements.forEach(item => {
+                if (item.el) {
+                    item.el.style.opacity = '0';
+                    item.el.style.transform = 'translateY(20px)';
+                    item.el.style.transition = `opacity ${item.duration}ms ease, transform ${item.duration}ms ease`;
+                    item.el.style.transitionDelay = `${item.delay}ms`;
+                    
+                    setTimeout(() => {
+                        item.el.style.opacity = '';
+                        item.el.style.transform = '';
+                    }, 50);
+                }
+            });
+        });
+
+        window.addEventListener('pageshow', function() {
+            document.body.classList.remove('loaded');
+            setTimeout(() => {
+                document.body.classList.add('loaded');
+            }, 50);
+        });
+    </script>
 </body>
 </html>

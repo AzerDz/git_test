@@ -12,29 +12,82 @@ python3 -m http.server 8000
 
 ```
 project/
-├── index.html      # Main HTML with Tailwind CDN
-├── css/styles.css  # Custom styles (dark theme, glassmorphism, animations)
-├── js/script.js    # Calculator logic, history, keyboard support
-├── README.md       # Basic project info
-└── AGENTS.md       # This file
+├── index.html       # Home page - utility hub with tool cards
+├── calculator.html  # Scientific calculator app
+├── js/
+│   └── script.js    # Calculator logic, history, keyboard support
+├── README.md        # Project info
+└── AGENTS.md        # This file
 ```
 
-## Tech Stack
-- **HTML**: Tailwind CSS via CDN for rapid styling
-- **CSS**: Custom animations, glassmorphism, dark theme, responsive breakpoints
-- **JS**: Vanilla JS with class-based Calculator, localStorage for history
+## CSS Architecture
 
-## Key Implementation Details
+**Tailwind CSS** (via CDN) handles: utilities (`flex`, `grid`, `text-white`, spacing, gradients, etc.)
 
-### Calculator Features
-- Basic: `+`, `-`, `×`, `÷`, `%`
-- Scientific: `sin`, `cos`, `tan`, `log`, `ln`, `√`, `^`, `!`, `π`, `e`
+**Custom CSS** (inline `<style>` tags) handles:
+- `@keyframes` animations (`fadeInUp`, `floatOrb`, `shake`, `slideInPanel`, etc.)
+- Complex selectors (`.history-item:nth-child()` with animation delays)
+- Glassmorphism (`backdrop-filter: blur()`)
+- Hover states with gradient overlays (`::before` pseudo-elements)
+- Page transition classes (`.page-enter`, `.page-transition-out`)
+
+This is intentional. Tailwind alone cannot do animations, keyframes, or complex pseudo-elements.
+
+## Pages
+
+### Home Page (index.html)
+- Dark glassmorphism hub with floating orb animations
+- Grid of tool cards with hover effects (scale, glow, translateY)
+- Each tool links to its respective page
+- Placeholder cards for "Coming soon" features
+- Page transition animation on navigation
+
+### Calculator Page (calculator.html)
+- Full scientific calculator with history panel
+- Back button with slide-in animation
+- See Calculator Features below
+
+## Design System
+
+### Colors
+| Element | Colors |
+|---------|--------|
+| **Background** | `#0a0a0f` |
+| **Card Background** | `rgba(255, 255, 255, 0.05)` to `rgba(26, 26, 46, 1)` |
+| **Border** | `rgba(255, 255, 255, 0.1)` |
+| **Primary Gradient** | `#667eea` → `#764ba2` |
+| **Cyan Accent** | `#4facfe` → `#00f2fe` |
+| **Error/Clear** | `#f093fb` → `#f5576c` |
+
+### Typography
+- **Font:** Outfit (Google Fonts), weights 300-700
+- **Headings:** 2-3rem, font-bold
+- **Body:** 1rem, font-medium/normal
+
+### Animations
+| Name | Purpose | Duration |
+|------|---------|----------|
+| `floatOrb` | Background orb movement | 8-15s, infinite |
+| `fadeInUp` | Elements appearing | 0.5s, forwards |
+| `slideInFromLeft` | Back button slide | 0.4s, forwards |
+| `shake` | Error feedback | 0.5s |
+| `slideInPanel` | History panel slide | 0.3s |
+
+## Calculator Features
+
+### Basic Operations
+- `+`, `-`, `×`, `÷`, `%`, `^`
+
+### Scientific Functions
+- `sin`, `cos`, `tan`, `log`, `ln`, `√`, `!`
+- Constants: `π`, `e`
 - `ANS` button - uses last answer from history
 
 ### History Panel
-- Toggle with `h` key or button
 - Stores last 50 calculations in localStorage
-- Click any item to load it back into display
+- Click any item to reload it
+- Delete individual items or clear all
+- Slides in from right (350px width)
 
 ### Keyboard Shortcuts
 | Key | Action |
@@ -44,38 +97,14 @@ project/
 | `Enter` | Calculate |
 | `Escape` | Clear all |
 | `Backspace` | Delete last char |
-| `h` | Toggle history |
 | `.` | Decimal |
+| `(`, `)` | Parentheses |
 
-### Animations
-- Button hover/click effects
-- Error shake animation on invalid input
-- Result reveal animation on calculate
-- Floating orbs background (CSS keyframes)
-- Toast notification for copy action
+## Common Issues
 
-### Copy Result
-- Click copy icon or press `Ctrl+C` when result is focused
-- Shows toast notification on success
+1. **Regex syntax error**: `/` inside regex must be escaped as `\/`
+2. **Calculator not responding**: Hard refresh `Ctrl+Shift+R`
+3. **Storage errors**: Check browser localStorage permissions
 
-## Common Issues Fixed
-
-1. **Regex syntax error**: In percentage calculation, `/` inside regex must be escaped as `\/`
-   ```js
-   // Wrong: /\s*\/\s*/
-   // Right: /\s*\\/\s*/
-   ```
-
-2. **Chrome DevTools warning**: Tailwind CDN warning is not an error - just a production guideline
-
-3. **Calculator not responding**: Check browser cache - do hard refresh `Ctrl+Shift+R`
-
-## Design Specs
-- Dark theme with `#0f0f1a` background
-- Glassmorphism panel with `backdrop-filter: blur(12px)`
-- Primary accent: gradient `#667eea` → `#764ba2`
-- Button grid: 5 columns, responsive
-
-## Local Storage Keys
-- `calc_history`: Array of calculation objects `{expression, result, timestamp}`
-- `calc_ans`: Last calculation result (string)
+## Local Storage
+- `calculatorHistory`: Array of `{expression, result, timestamp}`
