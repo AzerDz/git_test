@@ -3,7 +3,7 @@
 ## Quick Start
 
 ```bash
-cd /home/ouss/projects/repos/git_test
+cd /path/to/project
 python3 -m http.server 8000
 # Open http://localhost:8000 in browser
 ```
@@ -11,7 +11,7 @@ python3 -m http.server 8000
 ## Project Structure
 
 ```
-git_test/
+project/
 ├── index.html      # Main HTML with Tailwind CDN
 ├── css/styles.css  # Custom styles (dark theme, glassmorphism, animations)
 ├── js/script.js    # Calculator logic, history, keyboard support
