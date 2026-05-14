@@ -9,122 +9,40 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
-<style>
-        :root {
-            --text-secondary: rgba(255, 255, 255, 0.6);
-        }
-
-        body {
-            opacity: 0;
-            transition: opacity 0.4s ease;
-        }
-
-        body.loaded {
-            opacity: 1;
-        }
-
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+        
         @keyframes floatOrb {
             0%, 100% { transform: translate(0, 0) scale(1); }
             33% { transform: translate(30px, -20px) scale(1.1); }
             66% { transform: translate(-20px, 20px) scale(0.9); }
         }
 
-        @keyframes slideInFromLeft {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
-        .tool-card {
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
+        body { animation: fadeIn 0.3s ease forwards; opacity: 0; }
 
-        .tool-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .tool-card:hover::before {
-            opacity: 1;
-        }
-
-        .tool-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(102, 126, 234, 0.3);
-        }
-
-        .nav-back-btn {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 100;
-        }
-
-        .nav-back-btn a {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 20px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-blur-xl;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: white;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            opacity: 0;
-            animation: slideInFromLeft 0.4s ease 0.2s forwards;
-        }
-
-        .nav-back-btn a:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateX(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            pointer-events: none;
-            filter: blur(80px);
-        }
-
-        @media (max-width: 768px) {
-            .hero-title { font-size: 2.5rem; }
-            .hero-subtitle { font-size: 1rem; }
-            .tool-card { padding: 24px; }
-        }
-
-        @media (max-width: 480px) {
-            .hero-title { font-size: 2rem; }
-            .hero-subtitle { font-size: 0.875rem; }
-            .tools-grid { grid-template-columns: 1fr !important; }
-        }
+        .orb { position: absolute; border-radius: 50%; pointer-events: none; filter: blur(80px); }
     </style>
 </head>
-<body class="bg-[#0a0a0f] min-h-screen flex flex-col items-center justify-center p-5 font-['Outfit'] relative overflow-hidden">
+<body class="bg-[#0a0a0f] min-h-screen flex flex-col items-center justify-center p-5 relative overflow-hidden">
     <div class="orb w-[300px] h-[300px] bg-gradient-to-br from-[#667eea] to-[#764ba2] opacity-30 -top-[150px] -left-[100px] animate-[floatOrb_10s_ease-in-out_infinite]"></div>
     <div class="orb w-[250px] h-[250px] bg-gradient-to-br from-[#4facfe] to-[#00f2fe] opacity-30 -bottom-[100px] -right-[80px] animate-[floatOrb_12s_ease-in-out_infinite_reverse]"></div>
     <div class="orb w-[200px] h-[200px] bg-gradient-to-br from-[#f093fb] to-[#f5576c] opacity-20 top-[30%] left-[10%] animate-[floatOrb_15s_ease-in-out_infinite]"></div>
 
-    <div class="relative z-10 text-center max-w-2xl mx-auto">
-        <h1 id="hero-title" class="hero-title text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#4facfe] bg-clip-text text-transparent">
+    <div class="relative z-10 text-center max-w-2xl mx-auto w-full">
+        <h1 class="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#4facfe] bg-clip-text text-transparent">
             QuickTools
         </h1>
-        <p id="hero-subtitle" class="hero-subtitle text-lg text-white/60 mb-12">
+        <p class="text-lg text-white/60 mb-12">
             Your daily utility hub. Fast, simple, beautiful.
         </p>
 
-        <div class="tools-grid grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <a href="calculator.html" class="tool-card block bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-8 border border-white/10 backdrop-blur-xl" id="card-calc" onclick="navigateWithAnimation(event, this.href)">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <a href="calculator.html" class="flex flex-col justify-between bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-8 border border-white/10 backdrop-blur-xl hover:-translate-y-1 hover:shadow-lg transition-all h-full" onclick="document.body.style.opacity='0'">
                 <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center mb-4 mx-auto">
                     <i class="fas fa-calculator text-2xl text-white"></i>
                 </div>
@@ -132,79 +50,30 @@
                 <p class="text-sm text-white/60">Advanced calculator with sin, cos, log, history & more</p>
             </a>
 
-            <div class="tool-card bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-8 border border-white/10 backdrop-blur-xl opacity-50 cursor-not-allowed" id="card-links">
+            <div class="flex flex-col justify-between bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-8 border border-white/10 backdrop-blur-xl opacity-50 cursor-not-allowed h-full">
                 <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-[#4facfe] to-[#00f2fe] flex items-center justify-center mb-4 mx-auto">
                     <i class="fas fa-link text-2xl text-white"></i>
                 </div>
                 <h2 class="text-xl font-semibold text-white mb-2">Quick Links</h2>
-                <p class="text-sm text-white/60">Access your favorite sites instantly</p>
-                <span class="inline-block mt-3 text-xs bg-white/10 text-white/80 px-3 py-1 rounded-full">Coming soon</span>
+                <p class="text-sm text-white/60">Coming soon</p>
             </div>
 
-            <div class="tool-card bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-8 border border-white/10 backdrop-blur-xl opacity-50 cursor-not-allowed" id="card-tools">
+            <div class="flex flex-col justify-between bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-8 border border-white/10 backdrop-blur-xl opacity-50 cursor-not-allowed h-full">
                 <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-[#f093fb] to-[#f5576c] flex items-center justify-center mb-4 mx-auto">
                     <i class="fas fa-tools text-2xl text-white"></i>
                 </div>
                 <h2 class="text-xl font-semibold text-white mb-2">More Tools</h2>
-                <p class="text-sm text-white/60">New utilities added regularly</p>
-                <span class="inline-block mt-3 text-xs bg-white/10 text-white/80 px-3 py-1 rounded-full">Coming soon</span>
+                <p class="text-sm text-white/60">Coming soon</p>
             </div>
 
-            <div class="tool-card bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-8 border border-white/10 backdrop-blur-xl opacity-50 cursor-not-allowed" id="card-suggest">
+            <div class="flex flex-col justify-between bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-8 border border-white/10 backdrop-blur-xl opacity-50 cursor-not-allowed h-full">
                 <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center mb-4 mx-auto">
                     <i class="fas fa-plus text-2xl text-white"></i>
                 </div>
                 <h2 class="text-xl font-semibold text-white mb-2">Suggest a Tool</h2>
-                <p class="text-sm text-white/60">Have an idea? Let us know!</p>
-                <span class="inline-block mt-3 text-xs bg-white/10 text-white/80 px-3 py-1 rounded-full">Coming soon</span>
+                <p class="text-sm text-white/60">Coming soon</p>
             </div>
         </div>
     </div>
-
-    <script>
-        function navigateWithAnimation(event, href) {
-            if (event) event.preventDefault();
-            document.body.classList.remove('loaded');
-            setTimeout(() => {
-                window.location.href = href;
-            }, 300);
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(() => {
-                document.body.classList.add('loaded');
-            }, 50);
-
-            const elements = [
-                { el: document.getElementById('hero-title'), delay: 100, duration: 500 },
-                { el: document.getElementById('hero-subtitle'), delay: 200, duration: 500 },
-                { el: document.getElementById('card-calc'), delay: 300, duration: 500 },
-                { el: document.getElementById('card-links'), delay: 400, duration: 500 },
-                { el: document.getElementById('card-tools'), delay: 500, duration: 500 },
-                { el: document.getElementById('card-suggest'), delay: 600, duration: 500 }
-            ];
-
-            elements.forEach(item => {
-                if (item.el) {
-                    item.el.style.opacity = '0';
-                    item.el.style.transform = 'translateY(20px)';
-                    item.el.style.transition = `opacity ${item.duration}ms ease, transform ${item.duration}ms ease`;
-                    item.el.style.transitionDelay = `${item.delay}ms`;
-                    
-                    setTimeout(() => {
-                        item.el.style.opacity = '';
-                        item.el.style.transform = '';
-                    }, 50);
-                }
-            });
-        });
-
-        window.addEventListener('pageshow', function() {
-            document.body.classList.remove('loaded');
-            setTimeout(() => {
-                document.body.classList.add('loaded');
-            }, 50);
-        });
-    </script>
 </body>
 </html>

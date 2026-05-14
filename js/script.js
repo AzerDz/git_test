@@ -1,25 +1,56 @@
+/**
+ * Calculator Application
+ * Scientific calculator with history, localStorage persistence, and keyboard support
+ */
+
 class Calculator {
+    //==========================================================================
+    // CONSTANTS & CONFIG
+    //==========================================================================
+    static CONFIG = {
+        MAX_HISTORY: 50,
+        STORAGE_KEY: 'calculatorHistory'
+    };
+
+    static OPERATOR_MAP = {
+        '*': '×',
+        '/': '÷',
+        '×': '*',
+        '÷': '/'
+    };
+
+    static SUPPORTED_FUNCTIONS = ['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'abs', 'floor', 'ceil', 'round'];
+    static VALID_OPERATORS = ['+', '-', '*', '/', '%', '^', '**'];
+
+    //==========================================================================
+    // CONSTRUCTOR
+    //==========================================================================
     constructor() {
         this.currentInput = '0';
         this.previousInput = '';
         this.lastResult = null;
         this.shouldResetDisplay = false;
         this.history = [];
-        this.maxHistory = 50;
-        this.storageKey = 'calculatorHistory';
         this.historyPanel = null;
         this.isHistoryOpen = false;
+
         this.initElements();
         this.createHistoryPanel();
         this.loadHistory();
         this.bindEvents();
     }
 
+    //==========================================================================
+    // INITIALIZATION
+    //==========================================================================
     initElements() {
         this.previousDisplay = document.getElementById('previousCalculation');
         this.currentDisplay = document.getElementById('currentResult');
     }
 
+    //==========================================================================
+    // HISTORY PANEL
+    //==========================================================================
     createHistoryPanel() {
         this.historyPanel = document.createElement('div');
         this.historyPanel.className = 'history-panel';
@@ -57,15 +88,10 @@ class Calculator {
     }
 
     addToHistory(expression, result) {
-        const historyItem = {
-            expression: expression,
-            result: result,
-            timestamp: Date.now()
-        };
-
+        const historyItem = { expression, result, timestamp: Date.now() };
         this.history.unshift(historyItem);
 
-        if (this.history.length > this.maxHistory) {
+        if (this.history.length > Calculator.CONFIG.MAX_HISTORY) {
             this.history.pop();
         }
 
@@ -128,9 +154,12 @@ class Calculator {
         this.renderHistory();
     }
 
+    //==========================================================================
+    // LOCAL STORAGE
+    //==========================================================================
     saveHistory() {
         try {
-            localStorage.setItem(this.storageKey, JSON.stringify(this.history));
+            localStorage.setItem(Calculator.CONFIG.STORAGE_KEY, JSON.stringify(this.history));
         } catch (e) {
             console.error('Failed to save history:', e);
         }
@@ -138,124 +167,92 @@ class Calculator {
 
     loadHistory() {
         try {
-            const saved = localStorage.getItem(this.storageKey);
-            if (saved) {
-                this.history = JSON.parse(saved);
-                this.renderHistory();
-            } else {
-                this.renderHistory();
-            }
+            const saved = localStorage.getItem(Calculator.CONFIG.STORAGE_KEY);
+            this.history = saved ? JSON.parse(saved) : [];
         } catch (e) {
             console.error('Failed to load history:', e);
             this.history = [];
-            this.renderHistory();
         }
+        this.renderHistory();
     }
 
+    //==========================================================================
+    // EVENT BINDING
+    //==========================================================================
     bindEvents() {
         const grid = document.querySelector('.button-grid');
         grid.addEventListener('click', (e) => {
             const btn = e.target.closest('.calc-btn');
             if (!btn) return;
-            const value = btn.dataset.value;
-            this.handleButtonClick(value);
+            this.handleButtonClick(btn.dataset.value);
         });
 
-        document.addEventListener('keydown', (e) => {
-            const key = e.key;
-            
-            if (key >= '0' && key <= '9') {
-                this.handleButtonClick(key);
-            } else if (key === '.') {
-                this.handleButtonClick('.');
-            } else if (key === '+') {
-                this.handleButtonClick('+');
-            } else if (key === '-') {
-                this.handleButtonClick('-');
-            } else if (key === '*') {
-                this.handleButtonClick('*');
-            } else if (key === '/') {
-                e.preventDefault();
-                this.handleButtonClick('/');
-            } else if (key === '^') {
-                this.handleButtonClick('^');
-            } else if (key === '%') {
-                this.handleButtonClick('%');
-            } else if (key === '(') {
-                this.handleButtonClick('(');
-            } else if (key === ')') {
-                this.handleButtonClick(')');
-            } else if (key === 'Enter' || key === '=') {
-                e.preventDefault();
-                this.handleButtonClick('=');
-            } else if (key === 'Escape') {
-                this.handleButtonClick('ac');
-            } else if (key === 'Backspace') {
-                e.preventDefault();
-                this.handleButtonClick('backspace');
-            }
-        });
+        document.addEventListener('keydown', (e) => this.handleKeyboard(e));
     }
 
+    handleKeyboard(e) {
+        const keyMap = {
+            '0': '0', '1': '1', '2': '2', '3': '3', '4': '4',
+            '5': '5', '6': '6', '7': '7', '8': '8', '9': '9',
+            '.': '.', '+': '+', '-': '-', '*': '*', '/': '/',
+            '^': '^', '%': '%', '(': '(', ')': ')'
+        };
+
+        if (keyMap[e.key]) {
+            if (e.key === '/') {
+                e.preventDefault();
+            }
+            this.handleButtonClick(keyMap[e.key]);
+        } else if (e.key === 'Enter' || e.key === '=') {
+            e.preventDefault();
+            this.handleButtonClick('=');
+        } else if (e.key === 'Escape') {
+            this.handleButtonClick('ac');
+        } else if (e.key === 'Backspace') {
+            e.preventDefault();
+            this.handleButtonClick('backspace');
+        }
+    }
+
+    //==========================================================================
+    // BUTTON HANDLERS
+    //==========================================================================
     handleButtonClick(value) {
-        switch (value) {
-            case 'clear':
-            case 'ac':
-                this.clear();
-                break;
-            case 'backspace':
-                this.backspace();
-                break;
-            case '=':
-                this.calculate();
-                break;
-            case '+':
-            case '-':
-            case '*':
-            case '/':
-            case '%':
-            case '^':
-                this.handleOperator(value);
-                break;
-            case 'sqrt':
-                this.handleFunction('sqrt');
-                break;
-            case 'sin':
-            case 'cos':
-            case 'tan':
-            case 'log':
-            case 'ln':
-                this.handleScientificFunction(value);
-                break;
-            case 'pi':
-                this.insertConstant(Math.PI);
-                break;
-            case 'e':
-                this.insertConstant(Math.E);
-                break;
-            case 'ans':
-                this.insertAns();
-                break;
-            case 'history':
-                this.toggleHistory();
-                break;
-            case 'negate':
-                this.negate();
-                break;
-            case '!':
-                this.handleFactorial();
-                break;
-            case '(':
-            case ')':
-                this.handleParentheses(value);
-                break;
-            default:
-                this.handleNumber(value);
+        const handlers = {
+            'clear': () => this.clear(),
+            'ac': () => this.clear(),
+            'backspace': () => this.backspace(),
+            '=': () => this.calculate(),
+            'history': () => this.toggleHistory(),
+            'negate': () => this.negate(),
+            'sqrt': () => this.handleFunction('sqrt'),
+            'sin': () => this.handleScientific('sin'),
+            'cos': () => this.handleScientific('cos'),
+            'tan': () => this.handleScientific('tan'),
+            'log': () => this.handleScientific('log'),
+            'ln': () => this.handleScientific('ln'),
+            'pi': () => this.insertConstant(Math.PI),
+            'e': () => this.insertConstant(Math.E),
+            'ans': () => this.insertAns(),
+            '!': () => this.handleFactorial()
+        };
+
+        if (handlers[value]) {
+            handlers[value]();
+        } else if (Calculator.VALID_OPERATORS.includes(value)) {
+            this.handleOperator(value);
+        } else if (value === '(' || value === ')') {
+            this.handleParentheses(value);
+        } else {
+            this.handleNumber(value);
         }
 
         this.updateDisplay();
     }
 
+    //==========================================================================
+    // INPUT HANDLERS
+    //==========================================================================
     handleNumber(value) {
         if (this.shouldResetDisplay) {
             this.currentInput = value;
@@ -274,138 +271,35 @@ class Calculator {
     }
 
     handleOperator(operator) {
-        let opSymbol = operator;
-        if (operator === '*') opSymbol = '×';
-        if (operator === '/') opSymbol = '÷';
+        const opSymbol = Calculator.OPERATOR_MAP[operator] || operator;
 
         if (this.shouldResetDisplay) {
             const currentNum = this.currentInput.replace(/,/g, '');
-            this.previousInput = currentNum + ' ' + opSymbol + ' ';
+            this.previousInput = `${currentNum} ${opSymbol} `;
             this.currentInput = '';
             this.shouldResetDisplay = true;
             return;
         }
 
         const currentNum = this.currentInput.replace(/,/g, '');
-        
+
         if (!currentNum || this.currentInput === '') {
-            this.previousInput += opSymbol + ' ';
+            this.previousInput += `${opSymbol} `;
             this.currentInput = '';
             this.shouldResetDisplay = true;
             return;
         }
 
         const lastChar = this.currentInput.slice(-1);
-        const operators = ['+', '-', '×', '÷', '*', '/', '^', '%'];
-        
-        if (operators.includes(lastChar)) {
-            this.previousInput = this.currentInput.slice(0, -1).replace(/,/g, '') + ' ' + opSymbol + ' ';
+
+        if (Calculator.VALID_OPERATORS.includes(lastChar)) {
+            this.previousInput = `${this.currentInput.slice(0, -1).replace(/,/g, '')} ${opSymbol} `;
             this.currentInput = '';
         } else {
-            this.previousInput += currentNum + ' ' + opSymbol + ' ';
+            this.previousInput += `${currentNum} ${opSymbol} `;
             this.currentInput = '';
         }
-        
-        this.shouldResetDisplay = true;
-    }
 
-    handleFunction(func) {
-        const num = parseFloat(this.currentInput);
-        if (isNaN(num)) {
-            this.showError('Invalid input');
-            return;
-        }
-
-        let result;
-        switch (func) {
-            case 'sqrt':
-                result = Math.sqrt(num);
-                break;
-        }
-
-        this.previousInput = '√(' + this.currentInput + ')';
-        this.currentInput = this.formatResult(result);
-        this.lastResult = result;
-        this.shouldResetDisplay = true;
-    }
-
-    handleScientificFunction(func) {
-        let num = parseFloat(this.currentInput);
-        
-        if (func === 'log') {
-            num = Math.log10(num);
-        } else if (func === 'ln') {
-            num = Math.log(num);
-        } else {
-            num = num * Math.PI / 180;
-            switch (func) {
-                case 'sin': num = Math.sin(num); break;
-                case 'cos': num = Math.cos(num); break;
-                case 'tan': num = Math.tan(num); break;
-            }
-        }
-
-        if (isNaN(num) || !isFinite(num)) {
-            this.showError('Math error');
-            return;
-        }
-
-        this.previousInput = func + '(' + this.currentInput + ')';
-        this.currentInput = this.formatResult(num);
-        this.lastResult = num;
-        this.shouldResetDisplay = true;
-    }
-
-    insertConstant(value) {
-        if (this.shouldResetDisplay) {
-            this.currentInput = this.formatResult(value);
-            this.shouldResetDisplay = false;
-        } else {
-            if (this.currentInput === '0') {
-                this.currentInput = this.formatResult(value);
-            } else {
-                this.currentInput += this.formatResult(value);
-            }
-        }
-    }
-
-    insertAns() {
-        if (this.lastResult !== null) {
-            if (this.shouldResetDisplay) {
-                this.currentInput = this.formatResult(this.lastResult);
-                this.shouldResetDisplay = false;
-            } else {
-                if (this.currentInput === '0') {
-                    this.currentInput = this.formatResult(this.lastResult);
-                } else {
-                    this.currentInput += this.formatResult(this.lastResult);
-                }
-            }
-        }
-    }
-
-    negate() {
-        const num = parseFloat(this.currentInput);
-        if (!isNaN(num) && num !== 0) {
-            this.currentInput = this.formatResult(-num);
-        }
-    }
-
-    handleFactorial() {
-        const num = parseFloat(this.currentInput);
-        if (!Number.isInteger(num) || num < 0) {
-            this.showError('Invalid factorial');
-            return;
-        }
-        
-        let result = 1;
-        for (let i = 2; i <= num; i++) {
-            result *= i;
-        }
-
-        this.previousInput = this.currentInput + '!';
-        this.currentInput = this.formatResult(result);
-        this.lastResult = result;
         this.shouldResetDisplay = true;
     }
 
@@ -426,14 +320,109 @@ class Calculator {
         }
     }
 
+    //==========================================================================
+    // SCIENTIFIC FUNCTIONS
+    //==========================================================================
+    handleFunction(func) {
+        const num = parseFloat(this.currentInput);
+        if (isNaN(num)) {
+            this.showError('Invalid input');
+            return;
+        }
+
+        let result;
+        switch (func) {
+            case 'sqrt': result = Math.sqrt(num); break;
+        }
+
+        this.previousInput = `√(${this.currentInput})`;
+        this.currentInput = this.formatResult(result);
+        this.lastResult = result;
+        this.shouldResetDisplay = true;
+    }
+
+    handleScientific(func) {
+        let num = parseFloat(this.currentInput);
+
+        switch (func) {
+            case 'sin': num = Math.sin(num * Math.PI / 180); break;
+            case 'cos': num = Math.cos(num * Math.PI / 180); break;
+            case 'tan': num = Math.tan(num * Math.PI / 180); break;
+            case 'log': num = Math.log10(num); break;
+            case 'ln': num = Math.log(num); break;
+        }
+
+        if (isNaN(num) || !isFinite(num)) {
+            this.showError('Math error');
+            return;
+        }
+
+        this.previousInput = `${func}(${this.currentInput})`;
+        this.currentInput = this.formatResult(num);
+        this.lastResult = num;
+        this.shouldResetDisplay = true;
+    }
+
+    insertConstant(value) {
+        if (this.shouldResetDisplay) {
+            this.currentInput = this.formatResult(value);
+            this.shouldResetDisplay = false;
+        } else {
+            this.currentInput = this.currentInput === '0'
+                ? this.formatResult(value)
+                : this.currentInput + this.formatResult(value);
+        }
+    }
+
+    insertAns() {
+        if (this.lastResult === null) return;
+
+        if (this.shouldResetDisplay) {
+            this.currentInput = this.formatResult(this.lastResult);
+            this.shouldResetDisplay = false;
+        } else {
+            this.currentInput = this.currentInput === '0'
+                ? this.formatResult(this.lastResult)
+                : this.currentInput + this.formatResult(this.lastResult);
+        }
+    }
+
+    negate() {
+        const num = parseFloat(this.currentInput);
+        if (!isNaN(num) && num !== 0) {
+            this.currentInput = this.formatResult(-num);
+        }
+    }
+
+    handleFactorial() {
+        const num = parseFloat(this.currentInput);
+        if (!Number.isInteger(num) || num < 0) {
+            this.showError('Invalid factorial');
+            return;
+        }
+
+        let result = 1;
+        for (let i = 2; i <= num; i++) {
+            result *= i;
+        }
+
+        this.previousInput = `${this.currentInput}!`;
+        this.currentInput = this.formatResult(result);
+        this.lastResult = result;
+        this.shouldResetDisplay = true;
+    }
+
+    //==========================================================================
+    // CALCULATION
+    //==========================================================================
     calculate() {
         const expression = (this.previousInput + this.currentInput).trim();
-        
+
         if (!expression || expression === '=') return;
 
         try {
             const result = this.safeEvaluate(expression);
-            
+
             if (!isFinite(result)) {
                 this.showError(result === Infinity ? 'Infinity' : 'Undefined');
                 return;
@@ -441,10 +430,10 @@ class Calculator {
 
             const formattedResult = this.formatResult(result);
             const cleanExpression = expression.replace(/\s+/g, ' ');
-            
+
             this.addToHistory(cleanExpression, formattedResult);
-            
-            this.previousInput = expression.replace(/\s+/g, ' ') + ' =';
+
+            this.previousInput = `${cleanExpression} =`;
             this.currentInput = formattedResult;
             this.lastResult = result;
             this.shouldResetDisplay = true;
@@ -454,37 +443,47 @@ class Calculator {
         }
     }
 
+    //==========================================================================
+    // EXPRESSION PARSER
+    //==========================================================================
     safeEvaluate(expression) {
         let expr = expression.replace(/\s+/g, ' ').trim();
-        
-        expr = expr.replace(/×/g, '*');
-        expr = expr.replace(/÷/g, '/');
-        expr = expr.replace(/π/g, String(Math.PI));
-        expr = expr.replace(/\^/g, '**');
-        expr = expr.replace(/(\d+)!/g, (match, num) => {
-            let fact = 1;
-            for (let i = 2; i <= parseInt(num); i++) fact *= i;
-            return String(fact);
-        });
 
-        const functions = ['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', 'abs', 'floor', 'ceil', 'round', 'pow'];
-        for (const func of functions) {
-            const regex = new RegExp(func + '\\(([^)]+)\\)', 'g');
+        expr = expr
+            .replace(/×/g, '*')
+            .replace(/÷/g, '/')
+            .replace(/π/g, String(Math.PI))
+            .replace(/\^/g, '**')
+            .replace(/(\d+)!/g, (_, num) => {
+                let fact = 1;
+                for (let i = 2; i <= parseInt(num); i++) fact *= i;
+                return String(fact);
+            });
+
+        for (const func of Calculator.SUPPORTED_FUNCTIONS) {
+            const regex = new RegExp(`${func}\\(([^)]+)\\)`, 'g');
             let prev;
             do {
                 prev = expr;
-                expr = expr.replace(regex, (match, arg) => {
-                    return `__FUNC_${func}__(${arg})`;
-                });
+                expr = expr.replace(regex, (_, arg) => `__FUNC_${func}__(${arg})`);
             } while (prev !== expr);
         }
 
         expr = expr.replace(/\be\b(?![a-zA-Z])/g, String(Math.E));
 
-        const tokenRegex = /(\d+\.?\d*)|(\()|(\))|(\*\*)|([+\-*/%])|(__FUNC_(?:sin|cos|tan|log|ln|sqrt|abs|floor|ceil|round|pow)__)/g;
+        const tokens = this.tokenize(expr);
+        if (tokens.length === 0) {
+            throw new Error('Invalid expression');
+        }
+
+        return this.parseTokens(tokens);
+    }
+
+    tokenize(expr) {
+        const tokenRegex = /(\d+\.?\d*)|(\()|(\))|(\*\*)|([+\-*/%])|(__FUNC_(?:sin|cos|tan|log|ln|sqrt|abs|floor|ceil|round)__)/g;
         const tokens = [];
         let match;
-        
+
         while ((match = tokenRegex.exec(expr)) !== null) {
             if (match[1]) tokens.push({ type: 'number', value: parseFloat(match[1]) });
             else if (match[2]) tokens.push({ type: 'lparen', value: '(' });
@@ -497,10 +496,10 @@ class Calculator {
             }
         }
 
-        if (tokens.length === 0) {
-            throw new Error('Invalid expression');
-        }
+        return tokens;
+    }
 
+    parseTokens(tokens) {
         let pos = 0;
 
         const peek = () => tokens[pos];
@@ -524,12 +523,9 @@ class Calculator {
                 const op = consume().value;
                 const right = parsePower();
                 if (op === '*') {
-                    if (peek() && peek().value === '%') {
-                        consume();
-                        left = left * right / 100;
-                    } else {
-                        left = left * right;
-                    }
+                    left = (peek() && peek().value === '%')
+                        ? (consume(), left * right / 100)
+                        : left * right;
                 } else {
                     if (right === 0) throw new Error('Division by zero');
                     left = left / right;
@@ -542,8 +538,7 @@ class Calculator {
             let left = parseUnary();
             if (peek() && peek().value === '**') {
                 consume();
-                const right = parsePower();
-                left = Math.pow(left, right);
+                left = Math.pow(left, parsePower());
             }
             return left;
         };
@@ -558,9 +553,8 @@ class Calculator {
 
         const parsePrimary = () => {
             const token = peek();
-            
             if (!token) throw new Error('Unexpected end of expression');
-            
+
             if (token.type === 'number') {
                 consume();
                 if (peek() && peek().value === '%') {
@@ -569,7 +563,7 @@ class Calculator {
                 }
                 return token.value;
             }
-            
+
             if (token.type === 'function') {
                 const func = consume().value;
                 if (!peek() || peek().type !== 'lparen') throw new Error('Expected ( after function');
@@ -579,7 +573,7 @@ class Calculator {
                 consume();
                 return this.evaluateFunction(func, arg);
             }
-            
+
             if (token.type === 'lparen') {
                 consume();
                 const result = parseExpression();
@@ -587,40 +581,46 @@ class Calculator {
                 consume();
                 return result;
             }
-            
-            throw new Error('Invalid token: ' + JSON.stringify(token));
+
+            throw new Error('Invalid token');
         };
 
         const result = parseExpression();
-        
+
         if (pos < tokens.length) {
             throw new Error('Unexpected tokens at end');
         }
-        
+
         return result;
     }
 
     evaluateFunction(func, arg) {
-        switch (func) {
-            case 'sin': return Math.sin(arg * Math.PI / 180);
-            case 'cos': return Math.cos(arg * Math.PI / 180);
-            case 'tan': return Math.tan(arg * Math.PI / 180);
-            case 'log': return Math.log10(arg);
-            case 'ln': return Math.log(arg);
-            case 'sqrt': return Math.sqrt(arg);
-            case 'abs': return Math.abs(arg);
-            case 'floor': return Math.floor(arg);
-            case 'ceil': return Math.ceil(arg);
-            case 'round': return Math.round(arg);
-            case 'pow': return Math.pow(arg, 2);
-            default: throw new Error('Unknown function: ' + func);
+        const funcMap = {
+            sin: (a) => Math.sin(a * Math.PI / 180),
+            cos: (a) => Math.cos(a * Math.PI / 180),
+            tan: (a) => Math.tan(a * Math.PI / 180),
+            log: Math.log10,
+            ln: Math.log,
+            sqrt: Math.sqrt,
+            abs: Math.abs,
+            floor: Math.floor,
+            ceil: Math.ceil,
+            round: Math.round
+        };
+
+        if (funcMap[func]) {
+            return funcMap[func](arg);
         }
+        throw new Error(`Unknown function: ${func}`);
     }
 
+    //==========================================================================
+    // DISPLAY & ERROR HANDLING
+    //==========================================================================
     formatResult(num) {
         if (num === null || num === undefined) return '0';
         if (typeof num !== 'number') return String(num);
-        
+
         if (!Number.isFinite(num)) {
             return num > 0 ? 'Infinity' : '-Infinity';
         }
@@ -637,7 +637,7 @@ class Calculator {
         this.previousInput = '';
         this.currentInput = message;
         this.shouldResetDisplay = true;
-        
+
         this.currentDisplay.classList.add('error-shake');
         this.currentDisplay.parentElement.classList.add('error');
         setTimeout(() => {
@@ -646,6 +646,14 @@ class Calculator {
         }, 500);
     }
 
+    updateDisplay() {
+        this.previousDisplay.textContent = this.previousInput;
+        this.currentDisplay.textContent = this.currentInput;
+    }
+
+    //==========================================================================
+    // CLEAR & BACKSPACE
+    //==========================================================================
     clear() {
         this.currentInput = '0';
         this.previousInput = '';
@@ -659,13 +667,9 @@ class Calculator {
             this.currentInput = this.currentInput.slice(0, -1);
         }
     }
-
-    updateDisplay() {
-        this.previousDisplay.textContent = this.previousInput;
-        this.currentDisplay.textContent = this.currentInput;
-    }
 }
 
+// Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
     window.calculator = new Calculator();
 });

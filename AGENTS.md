@@ -3,7 +3,7 @@
 ## Quick Start
 
 ```bash
-cd /path/to/project
+cd /home/ouss/projects/repos/git_test
 python3 -m http.server 8000
 # Open http://localhost:8000 in browser
 ```
