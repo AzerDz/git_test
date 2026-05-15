@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Links</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        html { scrollbar-width: thin; scrollbar-color: #667eea #1a1a2e; }
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #1a1a2e; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb { background: #764ba2; border-radius: 5px; border: 2px solid #1a1a2e; }
+        ::-webkit-scrollbar-thumb:hover { background: #4facfe; }
+        body { font-family: 'Outfit', sans-serif; }
+        
+        @keyframes floatOrb {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -20px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes slideInFromLeft {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes nodePulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.3); opacity: 1; }
+        }
+
+        @keyframes nodeGlow {
+            0%, 100% { box-shadow: 0 0 8px #667eea, 0 0 16px #667eea44; }
+            50% { box-shadow: 0 0 12px #764ba2, 0 0 24px #764ba244; }
+        }
+
+        @keyframes connectionLine {
+            0%, 100% { stroke-opacity: 0.3; }
+            50% { stroke-opacity: 0.7; }
+        }
+
+        body { animation: fadeIn 0.3s ease forwards; opacity: 0; }
+
+        .back-btn {
+            animation: slideInFromLeft 0.4s ease forwards;
+            animation-delay: 0.2s;
+            opacity: 0;
+        }
+
+        .orb { position: absolute; border-radius: 50%; pointer-events: none; filter: blur(80px); }
+
+        .hero-art {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            overflow: hidden;
+            border-radius: 1rem;
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.8) 0%, rgba(22, 33, 62, 0.9) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .node {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: nodePulse 3s ease-in-out infinite, nodeGlow 4s ease-in-out infinite;
+        }
+
+        .node-1 { background: #667eea; top: 30%; left: 20%; animation-delay: 0s; }
+        .node-2 { background: #764ba2; top: 50%; left: 35%; animation-delay: 0.5s; }
+        .node-3 { background: #4facfe; top: 25%; left: 50%; animation-delay: 1s; }
+        .node-4 { background: #00f2fe; top: 60%; left: 55%; animation-delay: 1.5s; }
+        .node-5 { background: #f093fb; top: 40%; left: 70%; animation-delay: 2s; }
+        .node-6 { background: #667eea; top: 55%; left: 85%; animation-delay: 2.5s; }
+        .node-7 { background: #764ba2; top: 75%; left: 25%; animation-delay: 0.3s; }
+        .node-8 { background: #4facfe; top: 70%; left: 75%; animation-delay: 1.8s; }
+
+        .connection {
+            position: absolute;
+            stroke: #667eea;
+            stroke-width: 2;
+            fill: none;
+            opacity: 0.3;
+            animation: connectionLine 4s ease-in-out infinite;
+        }
+
+        .category-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .category-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 40px -10px rgba(102, 126, 234, 0.3);
+        }
+
+        .category-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+        }
+
+        .category-card.expanded .category-content {
+            max-height: 300px;
+            padding-top: 16px;
+        }
+
+        .chevron {
+            transition: transform 0.3s ease;
+        }
+
+        .category-card.expanded .chevron {
+            transform: rotate(180deg);
+        }
+
+        .link-item {
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .link-item:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            transform: translateX(4px);
+        }
+    </style>
+</head>
+<body class="bg-[#0a0a0f] min-h-screen flex flex-col items-center p-5 relative overflow-y-auto overflow-x-hidden">
+    <div class="orb w-[300px] h-[300px] bg-gradient-to-br from-[#667eea] to-[#764ba2] opacity-30 -top-[150px] -left-[100px] animate-[floatOrb_10s_ease-in-out_infinite]"></div>
+    <div class="orb w-[250px] h-[250px] bg-gradient-to-br from-[#4facfe] to-[#00f2fe] opacity-30 -bottom-[100px] -right-[80px] animate-[floatOrb_12s_ease-in-out_infinite_reverse]"></div>
+    <div class="orb w-[200px] h-[200px] bg-gradient-to-br from-[#f093fb] to-[#f5576c] opacity-20 top-[30%] left-[10%] animate-[floatOrb_15s_ease-in-out_infinite]"></div>
+
+    <a href="index.html" onclick="document.body.style.opacity='0'" class="back-btn fixed top-5 left-5 flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white hover:bg-white/10 transition-all z-50">
+        <i class="fas fa-arrow-left"></i>
+        Home
+    </a>
+
+    <div class="relative z-10 w-full max-w-4xl mt-12">
+        <div class="hero-art mb-10">
+            <svg class="absolute w-full h-full" style="top: 0; left: 0;">
+                <line x1="24%" y1="30%" x2="35%" y2="50%" class="connection" style="animation-delay: 0s;"/>
+                <line x1="35%" y1="50%" x2="50%" y2="25%" class="connection" style="animation-delay: 0.5s;"/>
+                <line x1="50%" y1="25%" x2="55%" y2="60%" class="connection" style="animation-delay: 1s;"/>
+                <line x1="55%" y1="60%" x2="70%" y2="40%" class="connection" style="animation-delay: 1.5s;"/>
+                <line x1="70%" y1="40%" x2="85%" y2="55%" class="connection" style="animation-delay: 2s;"/>
+                <line x1="25%" y1="30%" x2="35%" y2="70%" class="connection" style="animation-delay: 0.8s;"/>
+                <line x1="50%" y1="25%" x2="75%" y2="70%" class="connection" style="animation-delay: 1.2s;"/>
+                <line x1="70%" y1="40%" x2="75%" y2="70%" class="connection" style="animation-delay: 2.2s;"/>
+            </svg>
+            <div class="node node-1"></div>
+            <div class="node node-2"></div>
+            <div class="node node-3"></div>
+            <div class="node node-4"></div>
+            <div class="node node-5"></div>
+            <div class="node node-6"></div>
+            <div class="node node-7"></div>
+            <div class="node node-8"></div>
+            <div class="absolute inset-0 flex flex-col items-center justify-center z-10">
+                <h1 class="text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#4facfe] bg-clip-text text-transparent">
+                    Quick Links
+                </h1>
+                <p class="text-white/60 text-center max-w-md">
+                    Your curated collection of essential web destinations
+                </p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-5">
+            <!-- Social -->
+            <div class="category-card bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-5 border border-white/10 backdrop-blur-xl cursor-pointer" onclick="toggleCategory(this)">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center">
+                            <i class="fas fa-users text-xl text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-white">Social</h3>
+                            <p class="text-xs text-white/50">Stay connected</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-down text-white/40 chevron"></i>
+                </div>
+                <div class="category-content">
+                    <div class="space-y-2 pt-4 border-t border-white/10">
+                        <a href="https://twitter.com" target="_blank" class="link-item flex items-center gap-3 p-3 rounded-lg">
+                            <i class="fab fa-twitter text-[#1DA1F2]"></i>
+                            <span class="text-white">Twitter / X</span>
+                            <i class="fas fa-external-link-alt text-white/30 text-xs ml-auto"></i>
+                        </a>
+                        <a href="https://linkedin.com" target="_blank" class="link-item flex items-center gap-3 p-3 rounded-lg">
+                            <i class="fab fa-linkedin text-[#0A66C2]"></i>
+                            <span class="text-white">LinkedIn</span>
+                            <i class="fas fa-external-link-alt text-white/30 text-xs ml-auto"></i>
+                        </a>
+                        <a href="https://instagram.com" target="_blank" class="link-item flex items-center gap-3 p-3 rounded-lg">
+                            <i class="fab fa-instagram text-[#E4405F]"></i>
+                            <span class="text-white">Instagram</span>
+                            <i class="fas fa-external-link-alt text-white/30 text-xs ml-auto"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productivity -->
+            <div class="category-card bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-5 border border-white/10 backdrop-blur-xl cursor-pointer" onclick="toggleCategory(this)">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4facfe] to-[#00f2fe] flex items-center justify-center">
+                            <i class="fas fa-briefcase text-xl text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-white">Productivity</h3>
+                            <p class="text-xs text-white/50">Get things done</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-down text-white/40 chevron"></i>
+                </div>
+                <div class="category-content">
+                    <div class="space-y-2 pt-4 border-t border-white/10">
+                        <a href="https://notion.so" target="_blank" class="link-item flex items-center gap-3 p-3 rounded-lg">
+                            <i class="fas fa-sticky-note text-white"></i>
+                            <span class="text-white">Notion</span>
+                            <i class="fas fa-external-link-alt text-white/30 text-xs ml-auto"></i>
+                        </a>
+                        <a href="https://todoist.com" target="_blank" class="link-item flex items-center gap-3 p-3 rounded-lg">
+                            <i class="fas fa-check-square text-[#E44332]"></i>
+                            <span class="text-white">Todoist</span>
+                            <i class="fas fa-external-link-alt text-white/30 text-xs ml-auto"></i>
+                        </a>
+                        <a href="https://calendar.google.com" target="_blank" class="link-item flex items-center gap-3 p-3 rounded-lg">
+                            <i class="fas fa-calendar-alt text-[#4285F4]"></i>
+                            <span class="text-white">Google Calendar</span>
+                            <i class="fas fa-external-link-alt text-white/30 text-xs ml-auto"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Development -->
+            <div class="category-card bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-5 border border-white/10 backdrop-blur-xl cursor-pointer" onclick="toggleCategory(this)">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#f093fb] to-[#f5576c] flex items-center justify-center">
+                            <i class="fas fa-code text-xl text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-white">Development</h3>
+                            <p class="text-xs text-white/50">Build & create</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-down text-white/40 chevron"></i>
+                </div>
+                <div class="category-content">
+                    <div class="space-y-2 pt-4 border-t border-white/10">
+                        <a href="https://github.com" target="_blank" class="link-item flex items-center gap-3 p-3 rounded-lg">
+                            <i class="fab fa-github text-white"></i>
+                            <span class="text-white">GitHub</span>
+                            <i class="fas fa-external-link-alt text-white/30 text-xs ml-auto"></i>
+                        </a>
+                        <a href="https://stackoverflow.com" target="_blank" class="link-item flex items-center gap-3 p-3 rounded-lg">
+                            <i class="fab fa-stack-overflow text-[#F48024]"></i>
+                            <span class="text-white">Stack Overflow</span>
+                            <i class="fas fa-external-link-alt text-white/30 text-xs ml-auto"></i>
+                        </a>
+                        <a href="https://code.visualstudio.com" target="_blank" class="link-item flex items-center gap-3 p-3 rounded-lg">
+                            <i class="fas fa-code-branch text-[#007ACC]"></i>
+                            <span class="text-white">VS Code</span>
+                            <i class="fas fa-external-link-alt text-white/30 text-xs ml-auto"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- News -->
+            <div class="category-card bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-5 border border-white/10 backdrop-blur-xl cursor-pointer" onclick="toggleCategory(this)">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center">
+                            <i class="fas fa-newspaper text-xl text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-white">News</h3>
+                            <p class="text-xs text-white/50">Stay informed</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-down text-white/40 chevron"></i>
+                </div>
+                <div class="category-content">
+                    <div class="space-y-2 pt-4 border-t border-white/10">
+                        <a href="https://bbc.com" target="_blank" class="link-item flex items-center gap-3 p-3 rounded-lg">
+                            <i class="fas fa-globe text-[#BB1919]"></i>
+                            <span class="text-white">BBC</span>
+                            <i class="fas fa-external-link-alt text-white/30 text-xs ml-auto"></i>
+                        </a>
+                        <a href="https://news.ycombinator.com" target="_blank" class="link-item flex items-center gap-3 p-3 rounded-lg">
+                            <i class="fas fa-hacker-news-square text-[#FF6600]"></i>
+                            <span class="text-white">Hacker News</span>
+                            <i class="fas fa-external-link-alt text-white/30 text-xs ml-auto"></i>
+                        </a>
+                        <a href="https://reuters.com" target="_blank" class="link-item flex items-center gap-3 p-3 rounded-lg">
+                            <i class="fas fa-book-reader text-[#FF8000]"></i>
+                            <span class="text-white">Reuters</span>
+                            <i class="fas fa-external-link-alt text-white/30 text-xs ml-auto"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning -->
+            <div class="category-card bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-5 border border-white/10 backdrop-blur-xl cursor-pointer" onclick="toggleCategory(this)">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4facfe] to-[#00f2fe] flex items-center justify-center">
+                            <i class="fas fa-graduation-cap text-xl text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-white">Learning</h3>
+                            <p class="text-xs text-white/50">Grow knowledge</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-down text-white/40 chevron"></i>
+                </div>
+                <div class="category-content">
+                    <div class="space-y-2 pt-4 border-t border-white/10">
+                        <a href="https://coursera.org" target="_blank" class="link-item flex items-center gap-3 p-3 rounded-lg">
+                            <i class="fas fa-graduation-cap text-[#0056D2]"></i>
+                            <span class="text-white">Coursera</span>
+                            <i class="fas fa-external-link-alt text-white/30 text-xs ml-auto"></i>
+                        </a>
+                        <a href="https://youtube.com" target="_blank" class="link-item flex items-center gap-3 p-3 rounded-lg">
+                            <i class="fab fa-youtube text-[#FF0000]"></i>
+                            <span class="text-white">YouTube</span>
+                            <i class="fas fa-external-link-alt text-white/30 text-xs ml-auto"></i>
+                        </a>
+                        <a href="https://developer.mozilla.org" target="_blank" class="link-item flex items-center gap-3 p-3 rounded-lg">
+                            <i class="fab fa-firefox text-[#FF7139]"></i>
+                            <span class="text-white">MDN Web Docs</span>
+                            <i class="fas fa-external-link-alt text-white/30 text-xs ml-auto"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Design -->
+            <div class="category-card bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-5 border border-white/10 backdrop-blur-xl cursor-pointer" onclick="toggleCategory(this)">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#f093fb] to-[#f5576c] flex items-center justify-center">
+                            <i class="fas fa-palette text-xl text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-white">Design</h3>
+                            <p class="text-xs text-white/50">Create beautiful</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-down text-white/40 chevron"></i>
+                </div>
+                <div class="category-content">
+                    <div class="space-y-2 pt-4 border-t border-white/10">
+                        <a href="https://figma.com" target="_blank" class="link-item flex items-center gap-3 p-3 rounded-lg">
+                            <i class="fas fa-pen-nib text-[#F24E1E]"></i>
+                            <span class="text-white">Figma</span>
+                            <i class="fas fa-external-link-alt text-white/30 text-xs ml-auto"></i>
+                        </a>
+                        <a href="https://dribbble.com" target="_blank" class="link-item flex items-center gap-3 p-3 rounded-lg">
+                            <i class="fas fa-basketball-ball text-[#EA4C89]"></i>
+                            <span class="text-white">Dribbble</span>
+                            <i class="fas fa-external-link-alt text-white/30 text-xs ml-auto"></i>
+                        </a>
+                        <a href="https://behance.net" target="_blank" class="link-item flex items-center gap-3 p-3 rounded-lg">
+                            <i class="fab fa-behance text-[#1769FF]"></i>
+                            <span class="text-white">Behance</span>
+                            <i class="fas fa-external-link-alt text-white/30 text-xs ml-auto"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleCategory(card) {
+            card.classList.toggle('expanded');
+        }
+    </script>
+</body>
+</html>

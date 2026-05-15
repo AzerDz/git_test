@@ -14,6 +14,7 @@ python3 -m http.server 8000
 project/
 ├── index.html       # Home page - utility hub with tool cards
 ├── calculator.html  # Scientific calculator app
+├── quicklinks.html  # Quick Links - curated links by category
 ├── js/
 │   └── script.js    # Calculator logic, history, keyboard support
 ├── README.md        # Project info
@@ -46,6 +47,12 @@ This is intentional. Tailwind alone cannot do animations, keyframes, or complex 
 - Full scientific calculator with history panel
 - Back button with slide-in animation
 - See Calculator Features below
+
+### Quick Links Page (quicklinks.html)
+- Animated hero section with floating node art
+- 6 expandable category cards (Social, Productivity, Development, News, Learning, Design)
+- 3 curated links per category (click to expand/collapse)
+- Back button with slide-in animation
 
 ## Design System
 
